@@ -8,8 +8,8 @@ import (
 	"github.com/bhsong/go-projects/todo-cli/internal/task"
 )
 
-func Load(fileName string) ([]task.Task, error) {
-	content, err := os.ReadFile(fileName)
+func Load(path string) ([]task.Task, error) {
+	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return []task.Task{}, nil
@@ -17,7 +17,7 @@ func Load(fileName string) ([]task.Task, error) {
 		return nil, fmt.Errorf("loadTasks: 파일 읽기 실패: %w", err)
 	}
 	var tasks []task.Task
-	err = json.Unmarshal(content, &tasks)
+	err = json.Unmarshal(data, &tasks)
 	return tasks, err
 }
 
