@@ -12,21 +12,27 @@ func Load(path string) ([]task.Task, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return []task.Task{}, nil
+			return nil, nil
 		}
-		return nil, fmt.Errorf("loadTasks: 파일 읽기 실패: %w", err)
+		return nil, fmt.Errorf("storage.Load: 파일 읽기 실패: %w", err)
 	}
-	var tasks []task.Task
+	tasks := []task.Task{}
 	err = json.Unmarshal(data, &tasks)
+	if err != nil {
+		return nil, fmt.Errorf("storage.Load: JSON 파싱 실패: %w", err)
+	}
 	return tasks, err
 }
 
-func Save(path string, t []task.Task) error {
-	data, err := json.MarshalIndent(t, "", " ")
-
+func Save(path string, tasks []task.Task) error {
+	data, err := json.MarshalIndent(tasks, "", " ")
 	if err != nil {
-		return err
+		return fmt.Errorf("storage.Save: JSON 변환 실패: %w", err)
 	}
 
-	return os.WriteFile(path, data, 0644)
+	err = os.WriteFile(path, data, 0644)
+	if err != nil {
+		return fmt.Errorf("storage.Save 파일 쓰기 실패: %w", err)
+	}
+	return nil
 }

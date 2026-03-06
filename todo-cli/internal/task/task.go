@@ -9,13 +9,18 @@ type Task struct {
 	ID        int       `json:"id"`
 	Title     string    `json:"title"`
 	Done      bool      `json:"done"`
-	CreatedAt time.Time `json:"createdat"`
+	CreatedAt time.Time `json:"created_at"`
 }
 
 func Add(tasks []Task, title string) []Task {
 	id := nextID(tasks)
 
-	t := Task{ID: id, Title: title}
+	t := Task{
+		ID:        id,
+		Title:     title,
+		Done:      false,
+		CreatedAt: time.Now(),
+	}
 
 	tasks = append(tasks, t)
 
