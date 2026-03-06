@@ -21,7 +21,7 @@ func Load(path string) ([]task.Task, error) {
 	if err != nil {
 		return nil, fmt.Errorf("storage.Load: JSON 파싱 실패: %w", err)
 	}
-	return tasks, err
+	return tasks, nil
 }
 
 func Save(path string, tasks []task.Task) error {
@@ -32,7 +32,7 @@ func Save(path string, tasks []task.Task) error {
 
 	err = os.WriteFile(path, data, 0644)
 	if err != nil {
-		return fmt.Errorf("storage.Save 파일 쓰기 실패: %w", err)
+		return fmt.Errorf("storage.Save: 파일 쓰기 실패: %w", err)
 	}
 	return nil
 }
