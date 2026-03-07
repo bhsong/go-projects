@@ -259,6 +259,63 @@ func TestE2E_Done_InvalidID(t *testing.T) {
 	}
 }
 
+// E-12: todo add (제목 없이) — runAdd의 인자 누락 처리 → 사용법 출력, exit 1
+func TestE2E_Add_인자없음(t *testing.T) {
+	dir := t.TempDir()
+	res := runBinary(t, dir, "add") // 제목 없이 add만
+
+	if res.exitCode != 1 {
+		t.Errorf("exit code 1 기대, 실제: %d", res.exitCode)
+	}
+	output := res.stdout + res.stderr
+	// "사용법" 또는 add 관련 안내가 포함되어야 함
+	if !strings.Contains(strings.ToLower(output), "사용법") && !strings.Contains(strings.ToLower(output), "usage") {
+		t.Errorf("사용법 안내가 출력되어야 함, 실제:\n%s", output)
+	}
+}
+
+// E-13: todo done (ID 없이) — parseID의 인자 누락 처리 → 사용법 출력, exit 1
+func TestE2E_Done_인자없음(t *testing.T) {
+	dir := t.TempDir()
+	res := runBinary(t, dir, "done") // ID 없이 done만
+
+	if res.exitCode != 1 {
+		t.Errorf("exit code 1 기대, 실제: %d", res.exitCode)
+	}
+	output := res.stdout + res.stderr
+	if output == "" {
+		t.Error("에러/사용법 메시지가 출력되어야 함")
+	}
+}
+
+// E-14: todo delete (ID 없이) — parseID의 인자 누락 처리 → 사용법 출력, exit 1
+func TestE2E_Delete_인자없음(t *testing.T) {
+	dir := t.TempDir()
+	res := runBinary(t, dir, "delete") // ID 없이 delete만
+
+	if res.exitCode != 1 {
+		t.Errorf("exit code 1 기대, 실제: %d", res.exitCode)
+	}
+	output := res.stdout + res.stderr
+	if output == "" {
+		t.Error("에러/사용법 메시지가 출력되어야 함")
+	}
+}
+
+// E-15: todo delete abc — parseID의 숫자 아닌 ID 처리 → 에러 메시지, exit 1
+func TestE2E_Delete_숫자아닌ID(t *testing.T) {
+	dir := t.TempDir()
+	res := runBinary(t, dir, "delete", "abc")
+
+	if res.exitCode != 1 {
+		t.Errorf("exit code 1 기대, 실제: %d", res.exitCode)
+	}
+	output := res.stdout + res.stderr
+	if output == "" {
+		t.Error("에러 메시지가 출력되어야 함")
+	}
+}
+
 // E-11: add → list → done → list — 전체 흐름 통합 검증
 func TestE2E_FullFlow(t *testing.T) {
 	dir := t.TempDir()
