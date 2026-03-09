@@ -38,13 +38,16 @@ func (j *JSONStorage) Save(tasks []task.Task) error {
 		return fmt.Errorf("storage.Save: JSON 변환 실패: %w", err)
 	}
 	tmp := j.path + ".tmp"
-	err = os.WriteFile(tmp, data, 0644)
+	err = os.WriteFile(tmp, data, 0600)
 	if err != nil {
 		return fmt.Errorf("storage.Save: 파일 쓰기 실패: %w", err)
 	}
 	err = os.Rename(tmp, j.path)
 	if err != nil {
-		os.Remove(tmp)
+		err = os.Remove(tmp)
+		if err != nil {
+			return fmt.Errorf("storage.Save: 임시 파일 삭제 실패: %w", err)
+		}
 		return fmt.Errorf("storage.Save: 파일 교체 실패: %w", err)
 	}
 	return nil

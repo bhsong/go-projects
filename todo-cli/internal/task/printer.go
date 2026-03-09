@@ -3,7 +3,6 @@ package task
 import (
 	"fmt"
 	"io"
-	"strconv"
 )
 
 func PrintTasks(w io.Writer, tasks []Task) {
@@ -14,11 +13,10 @@ func PrintTasks(w io.Writer, tasks []Task) {
 
 	for _, t := range tasks {
 		if t.Done {
-			fmt.Fprintf(w, "✅ ")
+			fmt.Fprintf(w, "✅ [%d] %s", t.ID, t.Title)
 		} else {
-			fmt.Fprintf(w, "⬜ ")
+			fmt.Fprintf(w, "⬜ [%d] %s", t.ID, t.Title)
 		}
-		fmt.Fprintln(w, "["+strconv.Itoa(t.ID)+"] "+t.Title)
 	}
 
 }

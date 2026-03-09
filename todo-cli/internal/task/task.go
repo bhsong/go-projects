@@ -52,11 +52,11 @@ func Delete(tasks []Task, id int) ([]Task, error) {
 }
 
 func nextID(tasks []Task) int {
-	max := 0
+	maxID := 0
 	for _, t := range tasks {
-		if t.ID > max {
-			max = t.ID
+		if t.ID > maxID {
+			maxID = t.ID
 		}
 	}
-	return max + 1
+	return maxID + 1
 }

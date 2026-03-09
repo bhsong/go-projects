@@ -10,7 +10,7 @@ import (
 	"github.com/bhsong/go-projects/todo-cli/internal/task"
 )
 
-const dataFile string = "tasks.json"
+const dataFile = "tasks.json"
 
 func main() {
 	s := storage.NewJSONStorage(dataFile)
