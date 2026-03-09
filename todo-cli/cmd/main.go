@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"io"
 	"os"
 	"strconv"
 
@@ -10,108 +10,132 @@ import (
 	"github.com/bhsong/go-projects/todo-cli/internal/task"
 )
 
-const jsonFile string = "tasks.json"
+const dataFile string = "tasks.json"
 
 func main() {
+	s := storage.NewJSONStorage(dataFile)
 	if len(os.Args) < 2 {
-		printUsage()
+		printUsage(os.Stderr)
 		os.Exit(1)
-	}
-
-	tasks, err := storage.Load(jsonFile)
-	if err != nil {
-		log.Fatalf("에러: %v", err)
 	}
 
 	switch os.Args[1] {
 	case "add":
-		if len(os.Args) < 3 {
-			fmt.Fprintln(os.Stderr, "사용법: todo add [할 일]")
+		err := runAdd(s, os.Stdout, os.Args)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "오류: %v\n", err)
 			os.Exit(1)
 		}
-		tasks = runAdd(tasks)
 	case "list":
-		runList(tasks)
-		return
+		err := runList(s, os.Stdout)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "오류: %v\n", err)
+			os.Exit(1)
+		}
 	case "done":
-		if len(os.Args) < 3 {
-			fmt.Fprintln(os.Stderr, "사용법: todo done [ID]")
+		err := runDone(s, os.Stdout, os.Args)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "오류: %v\n", err)
 			os.Exit(1)
 		}
-		tasks = runComplete(tasks)
 	case "delete":
-		if len(os.Args) < 3 {
-			fmt.Fprintln(os.Stderr, "사용법: todo delete [ID]")
+		err := runDelete(s, os.Stdout, os.Args)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "오류: %v\n", err)
 			os.Exit(1)
 		}
-		tasks = runDelete(tasks)
 	default:
-		fmt.Fprint(os.Stderr, "알 수 없는 명령입니다.")
-		printUsage()
+		printUsage(os.Stderr)
 		os.Exit(1)
 	}
-	err = storage.Save(jsonFile, tasks)
+}
+
+func runAdd(s task.Storage, w io.Writer, args []string) error {
+	if len(args) < 3 {
+		return fmt.Errorf("사용법: todo add <할 일>")
+	}
+
+	title := args[2]
+
+	tasks, err := s.Load()
 	if err != nil {
-		log.Fatalf("에러: %v", err)
-	}
-}
-
-func runAdd(tasks []task.Task) []task.Task {
-	tasks = task.Add(tasks, os.Args[2])
-	fmt.Println(os.Args[2] + "추가됨")
-	return tasks
-}
-
-func runList(tasks []task.Task) {
-	if len(tasks) == 0 {
-		fmt.Fprint(os.Stderr, "할 일이 없습니다.\n")
+		return fmt.Errorf("runAdd: %w", err)
 	}
 
-	for _, t := range tasks {
-		if t.Done {
-			fmt.Print("✅ ")
-		} else {
-			fmt.Print("⬜ ")
-		}
-		fmt.Println("[" + strconv.Itoa(t.ID) + "] " + t.Title)
-	}
-}
-
-func runComplete(tasks []task.Task) []task.Task {
-	id := parseID(os.Args[1])
-	tasks, err := task.Complete(tasks, id)
+	tasks, err = task.Add(tasks, title)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "오류: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("runAdd: %w", err)
 	}
-	fmt.Printf("ID %d 완료\n", id)
-	return tasks
-}
 
-func runDelete(tasks []task.Task) []task.Task {
-	id := parseID(os.Args[1])
-	tasks, err := task.Delete(tasks, id)
+	err = s.Save(tasks)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "오류: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("runAdd: %w", err)
 	}
-	fmt.Printf("ID %d 삭제\n", id)
-	return tasks
+
+	task.PrintResult(w, "✅ 추가됨: "+title)
+
+	return nil
 }
 
-func parseID(cmd string) int {
-	if cmd == "" {
-		fmt.Fprint(os.Stderr, "사용법: todo [add|list|done|delete]")
-		os.Exit(1)
-	}
-	id, err := strconv.Atoi(os.Args[2])
+func runList(s task.Storage, w io.Writer) error {
+	tasks, err := s.Load()
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "숫자가 아닌 ID: %v\n", err)
-		os.Exit(1)
+		return fmt.Errorf("runList: %w", err)
 	}
-	return id
+
+	task.PrintTasks(w, tasks)
+
+	return nil
 }
 
-func printUsage() {
-	fmt.Fprintln(os.Stderr, "사용법: todo [add|list|done|delete]")
+func runDone(s task.Storage, w io.Writer, args []string) error {
+	if len(args) < 3 {
+		return fmt.Errorf("사용법: todo done <ID>")
+	}
+	id, err := strconv.Atoi(args[2])
+	if err != nil {
+		return fmt.Errorf("ID는 숫자여야 합니다: %q", args[2])
+	}
+	tasks, err := s.Load()
+	if err != nil {
+		return fmt.Errorf("runDone: %w", err)
+	}
+	tasks, err = task.Complete(tasks, id)
+	if err != nil {
+		return fmt.Errorf("runDone: %w", err)
+	}
+	err = s.Save(tasks)
+	if err != nil {
+		return fmt.Errorf("runDone: %w", err)
+	}
+	task.PrintResult(w, fmt.Sprintf("✅ 완료 처리: ID %d", id))
+	return nil
+}
+
+func runDelete(s task.Storage, w io.Writer, args []string) error {
+	if len(args) < 3 {
+		return fmt.Errorf("사용법: todo delete <ID>")
+	}
+	id, err := strconv.Atoi(args[2])
+	if err != nil {
+		return fmt.Errorf("ID는 숫자여야 합니다: %q", args[2])
+	}
+	tasks, err := s.Load()
+	if err != nil {
+		return fmt.Errorf("runDelete: %w", err)
+	}
+	tasks, err = task.Delete(tasks, id)
+	if err != nil {
+		return fmt.Errorf("runDelete: %w", err)
+	}
+	err = s.Save(tasks)
+	if err != nil {
+		return fmt.Errorf("runDelete: %w", err)
+	}
+	task.PrintResult(w, fmt.Sprintf("🗑️  삭제됨: ID %d", id))
+	return nil
+}
+
+func printUsage(w io.Writer) {
+	fmt.Fprintln(w, "사용법: todo [add|list|done|delete]")
 }
