@@ -12,7 +12,11 @@ type Task struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func Add(tasks []Task, title string) []Task {
+func Add(tasks []Task, title string) ([]Task, error) {
+	if title == "" {
+		return tasks, fmt.Errorf("task.Add: 빈 title %s", title)
+	}
+
 	id := nextID(tasks)
 
 	t := Task{
@@ -24,7 +28,7 @@ func Add(tasks []Task, title string) []Task {
 
 	tasks = append(tasks, t)
 
-	return tasks
+	return tasks, nil
 }
 
 func Complete(tasks []Task, id int) ([]Task, error) {
@@ -48,11 +52,11 @@ func Delete(tasks []Task, id int) ([]Task, error) {
 }
 
 func nextID(tasks []Task) int {
-	max := 0
+	maxID := 0
 	for _, t := range tasks {
-		if t.ID > max {
-			max = t.ID
+		if t.ID > maxID {
+			maxID = t.ID
 		}
 	}
-	return max + 1
+	return maxID + 1
 }
