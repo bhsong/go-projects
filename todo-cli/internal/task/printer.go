@@ -13,9 +13,9 @@ func PrintTasks(w io.Writer, tasks []Task) {
 
 	for _, t := range tasks {
 		if t.Done {
-			fmt.Fprintf(w, "✅ [%d] %s", t.ID, t.Title)
+			fmt.Fprintf(w, "✅ [%d] %s [%s]", t.ID, t.Title, t.Priority)
 		} else {
-			fmt.Fprintf(w, "⬜ [%d] %s", t.ID, t.Title)
+			fmt.Fprintf(w, "⬜ [%d] %s [%s]", t.ID, t.Title, t.Priority)
 		}
 	}
 

@@ -9,12 +9,29 @@ type Task struct {
 	ID        int       `json:"id"`
 	Title     string    `json:"title"`
 	Done      bool      `json:"done"`
+	Priority  string    `json:"priority"`
 	CreatedAt time.Time `json:"created_at"`
 }
 
-func Add(tasks []Task, title string) ([]Task, error) {
+type FilterOptions struct {
+	ShowAll      bool   // true: 완료 포함 전체, false: 미완료만(기본값)
+	ShowDoneOnly bool   // true: 완료만
+	Priority     string // ""이면 필터 없음. "high","normal","low"이면 해당만 출력
+}
+
+var validPriorities = map[string]bool{
+	"high":   true,
+	"normal": true,
+	"low":    true,
+}
+
+func Add(tasks []Task, title string, priority string) ([]Task, error) {
 	if title == "" {
-		return tasks, fmt.Errorf("task.Add: 빈 title %s", title)
+		return nil, fmt.Errorf("task.Add: 제목이 비어있습니다.")
+	}
+
+	if _, exist := validPriorities[priority]; !exist {
+		return nil, fmt.Errorf("task.Add: 잘못된 우선수위입니다: %s (high/normal/low)", priority)
 	}
 
 	id := nextID(tasks)
@@ -23,6 +40,7 @@ func Add(tasks []Task, title string) ([]Task, error) {
 		ID:        id,
 		Title:     title,
 		Done:      false,
+		Priority:  priority,
 		CreatedAt: time.Now(),
 	}
 
@@ -51,6 +69,32 @@ func Delete(tasks []Task, id int) ([]Task, error) {
 	return tasks, fmt.Errorf("task.Delete: ID %d 없음", id)
 }
 
+func FilterTasks(tasks []Task, opts FilterOptions) []Task {
+	result := []Task{}
+	for _, t := range tasks {
+		if opts.ShowDoneOnly == true && t.Done == true {
+			if opts.Priority != "" && t.Priority == opts.Priority {
+				result = append(result, t)
+			} else if opts.Priority == "" {
+				result = append(result, t)
+			}
+		} else if opts.ShowAll == false && opts.ShowDoneOnly == false && t.Done == false {
+			if opts.Priority != "" && t.Priority == opts.Priority {
+				result = append(result, t)
+			} else if opts.Priority == "" {
+				result = append(result, t)
+			}
+		} else if opts.ShowAll == true {
+			if opts.Priority != "" && t.Priority == opts.Priority {
+				result = append(result, t)
+			} else if opts.Priority == "" {
+				result = append(result, t)
+			}
+		}
+	}
+	return result
+}
+
 func nextID(tasks []Task) int {
 	maxID := 0
 	for _, t := range tasks {
@@ -59,4 +103,8 @@ func nextID(tasks []Task) int {
 		}
 	}
 	return maxID + 1
+}
+
+func IsValidPriority(p string) bool {
+	return validPriorities[p]
 }
