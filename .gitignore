@@ -3,7 +3,10 @@
 
 .env
 
+.DS_Store
+
 tasks.json
 todo
 
 practice/*
+projects_md/*

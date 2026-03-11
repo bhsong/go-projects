@@ -42,13 +42,13 @@ func (j *JSONStorage) Save(tasks []task.Task) error {
 	if err != nil {
 		return fmt.Errorf("storage.Save: 파일 쓰기 실패: %w", err)
 	}
-	err = os.Rename(tmp, j.path)
-	if err != nil {
-		err = os.Remove(tmp)
-		if err != nil {
-			return fmt.Errorf("storage.Save: 임시 파일 삭제 실패: %w", err)
+	renameErr := os.Rename(tmp, j.path)
+	if renameErr != nil {
+		removeErr := os.Remove(tmp)
+		if removeErr != nil {
+			return fmt.Errorf("storage.Save: 임시 파일 삭제 실패: %w", removeErr)
 		}
-		return fmt.Errorf("storage.Save: 파일 교체 실패: %w", err)
+		return fmt.Errorf("storage.Save: 파일 교체 실패: %w", renameErr)
 	}
 	return nil
 }
