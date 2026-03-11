@@ -154,10 +154,10 @@ func TestE2E_List_기본(t *testing.T) {
 	bin := buildTestBinary(t)
 	dir := t.TempDir()
 
-	// 선행: add 미완료1, 미완료2, 완료1 후 done
+	// 선행: add 미완료1, 미완료2, 장보기 후 done
 	runTodo(t, bin, dir, "add", "미완료1")
 	runTodo(t, bin, dir, "add", "미완료2")
-	runTodo(t, bin, dir, "add", "완료1")
+	runTodo(t, bin, dir, "add", "장보기")
 	runTodo(t, bin, dir, "done", "3")
 
 	stdout, _, exitCode := runTodo(t, bin, dir, "list")
@@ -171,8 +171,8 @@ func TestE2E_List_기본(t *testing.T) {
 	if !strings.Contains(stdout, "미완료2") {
 		t.Errorf("'미완료2' 포함 기대, 실제:\n%s", stdout)
 	}
-	if strings.Contains(stdout, "완료1") {
-		t.Errorf("'완료1'은 기본 list에 포함되면 안 됨, 실제:\n%s", stdout)
+	if strings.Contains(stdout, "장보기") {
+		t.Errorf("'장보기'는 기본 list에 포함되면 안 됨, 실제:\n%s", stdout)
 	}
 }
 
@@ -183,7 +183,7 @@ func TestE2E_List_all(t *testing.T) {
 
 	runTodo(t, bin, dir, "add", "미완료1")
 	runTodo(t, bin, dir, "add", "미완료2")
-	runTodo(t, bin, dir, "add", "완료1")
+	runTodo(t, bin, dir, "add", "장보기")
 	runTodo(t, bin, dir, "done", "3")
 
 	stdout, _, exitCode := runTodo(t, bin, dir, "list", "--all")
@@ -197,19 +197,19 @@ func TestE2E_List_all(t *testing.T) {
 	if !strings.Contains(stdout, "미완료2") {
 		t.Errorf("'미완료2' 포함 기대, 실제:\n%s", stdout)
 	}
-	if !strings.Contains(stdout, "완료1") {
-		t.Errorf("'완료1' 포함 기대(--all), 실제:\n%s", stdout)
+	if !strings.Contains(stdout, "장보기") {
+		t.Errorf("'장보기' 포함 기대(--all), 실제:\n%s", stdout)
 	}
 }
 
-// TestE2E_List_done: 동일 선행 후 list --done → 완료1만 포함
+// TestE2E_List_done: 동일 선행 후 list --done → 장보기만 포함
 func TestE2E_List_done(t *testing.T) {
 	bin := buildTestBinary(t)
 	dir := t.TempDir()
 
 	runTodo(t, bin, dir, "add", "미완료1")
 	runTodo(t, bin, dir, "add", "미완료2")
-	runTodo(t, bin, dir, "add", "완료1")
+	runTodo(t, bin, dir, "add", "장보기")
 	runTodo(t, bin, dir, "done", "3")
 
 	stdout, _, exitCode := runTodo(t, bin, dir, "list", "--done")
@@ -223,8 +223,8 @@ func TestE2E_List_done(t *testing.T) {
 	if strings.Contains(stdout, "미완료2") {
 		t.Errorf("'미완료2'은 --done 출력에 포함되면 안 됨, 실제:\n%s", stdout)
 	}
-	if !strings.Contains(stdout, "완료1") {
-		t.Errorf("'완료1' 포함 기대(--done), 실제:\n%s", stdout)
+	if !strings.Contains(stdout, "장보기") {
+		t.Errorf("'장보기' 포함 기대(--done), 실제:\n%s", stdout)
 	}
 }
 

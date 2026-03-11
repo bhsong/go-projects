@@ -171,7 +171,7 @@ func runDelete(s task.Storage, w io.Writer, args []string) error {
 		return fmt.Errorf("사용법: todo delete <ID>")
 	}
 
-	id, err := strconv.Atoi(args[2])
+	id, err := strconv.Atoi(deleteCmd.Arg(0))
 	if err != nil {
 		return fmt.Errorf("ID는 숫자여야 합니다: %s", deleteCmd.Arg(0))
 	}

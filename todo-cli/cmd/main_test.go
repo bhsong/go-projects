@@ -87,7 +87,7 @@ func TestRunList_기본(t *testing.T) {
 	s := task.NewMemoryStorage([]task.Task{
 		{ID: 1, Title: "미완료1", Done: false, Priority: "normal", CreatedAt: time.Now()},
 		{ID: 2, Title: "미완료2", Done: false, Priority: "high", CreatedAt: time.Now()},
-		{ID: 3, Title: "완료1", Done: true, Priority: "normal", CreatedAt: time.Now()},
+		{ID: 3, Title: "장보기", Done: true, Priority: "normal", CreatedAt: time.Now()},
 	})
 	var buf bytes.Buffer
 
@@ -102,8 +102,8 @@ func TestRunList_기본(t *testing.T) {
 	if !strings.Contains(out, "미완료2") {
 		t.Errorf("미완료2이 출력에 포함되어야 함, 실제:\n%s", out)
 	}
-	if strings.Contains(out, "완료1") {
-		t.Errorf("완료1은 기본 list에 포함되면 안 됨, 실제:\n%s", out)
+	if strings.Contains(out, "장보기") {
+		t.Errorf("장보기는 기본 list에 포함되면 안 됨, 실제:\n%s", out)
 	}
 }
 
@@ -111,7 +111,7 @@ func TestRunList_기본(t *testing.T) {
 func TestRunList_all(t *testing.T) {
 	s := task.NewMemoryStorage([]task.Task{
 		{ID: 1, Title: "미완료1", Done: false, Priority: "normal", CreatedAt: time.Now()},
-		{ID: 2, Title: "완료1", Done: true, Priority: "normal", CreatedAt: time.Now()},
+		{ID: 2, Title: "장보기", Done: true, Priority: "normal", CreatedAt: time.Now()},
 	})
 	var buf bytes.Buffer
 
@@ -123,8 +123,8 @@ func TestRunList_all(t *testing.T) {
 	if !strings.Contains(out, "미완료1") {
 		t.Errorf("미완료1이 출력에 포함되어야 함, 실제:\n%s", out)
 	}
-	if !strings.Contains(out, "완료1") {
-		t.Errorf("완료1도 출력에 포함되어야 함(--all), 실제:\n%s", out)
+	if !strings.Contains(out, "장보기") {
+		t.Errorf("장보기도 출력에 포함되어야 함(--all), 실제:\n%s", out)
 	}
 }
 
@@ -132,7 +132,7 @@ func TestRunList_all(t *testing.T) {
 func TestRunList_done(t *testing.T) {
 	s := task.NewMemoryStorage([]task.Task{
 		{ID: 1, Title: "미완료1", Done: false, Priority: "normal", CreatedAt: time.Now()},
-		{ID: 2, Title: "완료1", Done: true, Priority: "normal", CreatedAt: time.Now()},
+		{ID: 2, Title: "장보기", Done: true, Priority: "normal", CreatedAt: time.Now()},
 	})
 	var buf bytes.Buffer
 
@@ -144,8 +144,8 @@ func TestRunList_done(t *testing.T) {
 	if strings.Contains(out, "미완료1") {
 		t.Errorf("미완료1은 --done 출력에 포함되면 안 됨, 실제:\n%s", out)
 	}
-	if !strings.Contains(out, "완료1") {
-		t.Errorf("완료1이 --done 출력에 포함되어야 함, 실제:\n%s", out)
+	if !strings.Contains(out, "장보기") {
+		t.Errorf("장보기가 --done 출력에 포함되어야 함, 실제:\n%s", out)
 	}
 }
 

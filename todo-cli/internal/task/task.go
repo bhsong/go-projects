@@ -70,26 +70,15 @@ func Delete(tasks []Task, id int) ([]Task, error) {
 }
 
 func FilterTasks(tasks []Task, opts FilterOptions) []Task {
-	result := []Task{}
+	result := []Task{} // 2차 필터 통과 후 태스크들
 	for _, t := range tasks {
-		if opts.ShowDoneOnly == true && t.Done == true {
-			if opts.Priority != "" && t.Priority == opts.Priority {
-				result = append(result, t)
-			} else if opts.Priority == "" {
-				result = append(result, t)
-			}
-		} else if opts.ShowAll == false && opts.ShowDoneOnly == false && t.Done == false {
-			if opts.Priority != "" && t.Priority == opts.Priority {
-				result = append(result, t)
-			} else if opts.Priority == "" {
-				result = append(result, t)
-			}
-		} else if opts.ShowAll == true {
-			if opts.Priority != "" && t.Priority == opts.Priority {
-				result = append(result, t)
-			} else if opts.Priority == "" {
-				result = append(result, t)
-			}
+		if opts.ShowDoneOnly && !t.Done {
+			continue
+		} else if !opts.ShowAll && !opts.ShowDoneOnly && t.Done {
+			continue
+		}
+		if opts.Priority == "" || t.Priority == opts.Priority {
+			result = append(result, t)
 		}
 	}
 	return result
