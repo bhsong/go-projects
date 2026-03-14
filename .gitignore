@@ -6,7 +6,7 @@
 .DS_Store
 
 tasks.json
-todo
+todo-cli/todo
 expr-calc/expr-calc
 
 practice/*

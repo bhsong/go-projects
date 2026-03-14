@@ -30,7 +30,6 @@ type Lexer struct {
 func newLexer(input string) *Lexer {
 	return &Lexer{
 		input: []rune(input),
-		pos:   0,
 	}
 }
 

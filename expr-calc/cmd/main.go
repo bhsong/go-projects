@@ -28,7 +28,7 @@ func main() {
 }
 
 func printUsage(w io.Writer) {
-	fmt.Fprintln(w, "사용법: expr-calc ,<표현식>")
+	fmt.Fprintln(w, "사용법: expr-calc <표현식>")
 	fmt.Fprintln(w, "예시: ")
 	fmt.Fprintln(w, " expr-calc \"3 + 4 * 2\"")
 	fmt.Fprintln(w, " expr-calc \"(10 - 2) / 4\"")

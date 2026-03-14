@@ -2,7 +2,9 @@ package calc
 
 import (
 	"fmt"
+	"os"
 	"strconv"
+	"time"
 )
 
 type parsePanic struct {
@@ -88,8 +90,15 @@ func (p *Parser) parseFactor() float64 {
 	panic(parsePanic{err: fmt.Errorf("calc.Parser: 예상치 못한 토큰: %q", p.current.Value)})
 }
 
+func timing(name string) func() {
+	start := time.Now()
+	return func() {
+		fmt.Fprintf(os.Stderr, "%s: %v\n", name, time.Since(start))
+	}
+}
+
 func Eval(expr string) (result float64, err error) {
-	//defer timing("Eval")
+	defer timing("Eval")()
 
 	defer func() {
 		if r := recover(); r != nil {
