@@ -20,6 +20,7 @@ const (
 type Token struct {
 	Type  TokenType
 	Value string // 숫자 토큰일 때만 의미 있음
+	Pos   int    // 토큰의 시작 위치 (디버깅용)
 }
 
 type Lexer struct {
@@ -41,6 +42,7 @@ func (l *Lexer) nextToken() Token {
 	if l.pos >= len(l.input) {
 		return Token{
 			Type: TokenEOF,
+			Pos:  0,
 		}
 	}
 
@@ -54,23 +56,27 @@ func (l *Lexer) nextToken() Token {
 		return Token{
 			Type:  TokenNumber,
 			Value: string(l.input[start:l.pos]),
+			Pos:   start,
 		}
 	}
 
 	l.pos++
 	switch ch {
 	case '+':
-		return Token{Type: TokenPlus}
+		return Token{Type: TokenPlus, Pos: l.pos - 1}
 	case '-':
-		return Token{Type: TokenMinus}
+		return Token{Type: TokenMinus, Pos: l.pos - 1}
 	case '*':
-		return Token{Type: TokenStar}
+		return Token{Type: TokenStar, Pos: l.pos - 1}
 	case '/':
-		return Token{Type: TokenSlash}
+		return Token{Type: TokenSlash, Pos: l.pos - 1}
 	case '(':
-		return Token{Type: TokenLParen}
+		return Token{Type: TokenLParen, Pos: l.pos - 1}
 	case ')':
-		return Token{Type: TokenRParen}
+		return Token{Type: TokenRParen, Pos: l.pos - 1}
 	}
-	panic(parsePanic{err: fmt.Errorf("calc.Lexer: 알수 없는 문자: %q", ch)})
+	panic(&ParseError{
+		Pos: l.pos - 1,
+		Msg: fmt.Sprintf("알 수 없는 문자: %q", ch),
+	})
 }
