@@ -1,15 +1,12 @@
 package calc
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"strconv"
 	"time"
 )
-
-type parsePanic struct {
-	err error
-}
 
 type Parser struct {
 	lexer   *Lexer
@@ -58,7 +55,7 @@ func (p *Parser) parseTerm() float64 {
 			left *= right
 		} else {
 			if right == 0 {
-				panic(parsePanic{err: fmt.Errorf("calc.Parse: 0으로 나눌 수 없습니다.")})
+				panic(ErrDivisionByZero)
 			}
 			left /= right
 		}
@@ -71,7 +68,10 @@ func (p *Parser) parseFactor() float64 {
 	if p.current.Type == TokenNumber {
 		val, err := strconv.ParseFloat(p.current.Value, 64)
 		if err != nil {
-			panic(parsePanic{err: fmt.Errorf("calc.Parser: 숫자 변환 실패: %q", p.current.Value)})
+			panic(&ParseError{
+				Pos: p.current.Pos,
+				Msg: fmt.Sprintf("숫자 변환 실패: %q", p.current.Value),
+			})
 		}
 		p.advance()
 		return val
@@ -81,13 +81,19 @@ func (p *Parser) parseFactor() float64 {
 		p.advance()
 		val := p.parseExpr()
 		if p.current.Type != TokenRParen {
-			panic(parsePanic{err: fmt.Errorf("calc.Parser: 닫는 괄호가 없습니다.")})
+			panic(&ParseError{
+				Pos: p.current.Pos,
+				Msg: fmt.Sprintf("닫는 괄호가 없습니다"),
+			})
 		}
 		p.advance()
 		return val
 	}
 
-	panic(parsePanic{err: fmt.Errorf("calc.Parser: 예상치 못한 토큰: %q", p.current.Value)})
+	panic(&ParseError{
+		Pos: p.current.Pos,
+		Msg: fmt.Sprintf("예상치 못한 토큰: %q", p.current.Value),
+	})
 }
 
 func timing(name string) func() {
@@ -102,16 +108,19 @@ func Eval(expr string) (result float64, err error) {
 
 	defer func() {
 		if r := recover(); r != nil {
-			if pe, ok := r.(parsePanic); ok {
-				err = pe.err
+			if errors.Is(r.(error), ErrDivisionByZero) {
+				err = ErrDivisionByZero
+				return
+			} else if pe, ok := r.(*ParseError); ok {
+				err = pe
+				return
 			} else {
 				panic(r)
 			}
 		}
 	}()
-
 	if expr == "" {
-		return 0, fmt.Errorf("calc.Eval: 빈 표현식입니다")
+		return 0, ErrEmptyExpression
 	}
 
 	l := newLexer(expr)
@@ -119,7 +128,10 @@ func Eval(expr string) (result float64, err error) {
 	result = p.parseExpr()
 
 	if p.current.Type != TokenEOF {
-		panic(parsePanic{err: fmt.Errorf("calc.Eval: 처리되지 않은 토큰이 있습니다: %q", p.current.Value)})
+		panic(&ParseError{
+			Pos: p.current.Pos,
+			Msg: fmt.Sprintf("처리되지 않은 토큰: %q", p.current.Value),
+		})
 	}
 	return
 }

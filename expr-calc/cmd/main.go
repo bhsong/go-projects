@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -11,6 +12,8 @@ import (
 )
 
 func main() {
+	var pe *calc.ParseError
+
 	if len(os.Args) < 2 {
 		printUsage(os.Stdout)
 		os.Exit(0)
@@ -20,8 +23,19 @@ func main() {
 
 	result, err := calc.Eval(expr)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "오류: %v\n", err)
-		os.Exit(1)
+		if errors.Is(err, calc.ErrDivisionByZero) {
+			fmt.Fprintf(os.Stderr, "오류: 0으로 나눌 수 없습니다\n")
+			os.Exit(1)
+		} else if errors.Is(err, calc.ErrEmptyExpression) {
+			fmt.Fprintf(os.Stderr, "오류: 빈 표현식입니다\n")
+			os.Exit(1)
+		} else if errors.As(err, &pe) {
+			fmt.Fprintf(os.Stderr, "오류: 위치 %d: %s\n", pe.Pos, pe.Msg)
+			os.Exit(1)
+		} else {
+			fmt.Fprintf(os.Stderr, "오류: %v\n", err)
+			os.Exit(1)
+		}
 	}
 
 	fmt.Println(strconv.FormatFloat(result, 'f', -1, 64))
