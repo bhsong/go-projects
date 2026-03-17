@@ -8,7 +8,7 @@ func ToMap(entries []Entry) (map[string]string, []DuplicateEntry) {
 
 	for _, e := range entries {
 		lineTracker[e.Key] = append(lineTracker[e.Key], e.Line)
-		result[e.Key] = e.Value // 중복이면 나중 값으로 덮어씀)
+		result[e.Key] = e.Value // 중복이면 나중 값으로 덮어씀
 	}
 
 	duplicates := []DuplicateEntry{}

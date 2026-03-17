@@ -30,13 +30,15 @@ func parseLine(line string, lineNum int) (Entry, bool) {
 		return Entry{}, false
 	}
 
+	key = strings.TrimSpace(key)
+	value = strings.TrimSpace(value)
 	if key == "" {
 		return Entry{}, false
 	}
 
 	return Entry{
-		Key:   strings.TrimSpace(key),
-		Value: strings.TrimSpace(value),
+		Key:   key,
+		Value: value,
 		Line:  lineNum,
 	}, true
 }
