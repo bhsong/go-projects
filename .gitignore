@@ -8,6 +8,7 @@
 tasks.json
 todo-cli/todo
 expr-calc/expr-calc
+envctl/envctl
 
 practice/*
 projects_md/*

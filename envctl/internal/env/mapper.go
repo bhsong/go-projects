@@ -11,7 +11,7 @@ func ToMap(entries []Entry) (map[string]string, []DuplicateEntry) {
 		result[e.Key] = e.Value // 중복이면 나중 값으로 덮어씀
 	}
 
-	duplicates := []DuplicateEntry{}
+	var duplicates []DuplicateEntry
 
 	for key, lines := range lineTracker {
 		if len(lines) > 1 {

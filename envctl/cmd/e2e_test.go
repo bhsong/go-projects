@@ -23,9 +23,8 @@ func TestMain(m *testing.M) {
 
 	binaryPath = filepath.Join(tmp, "envctl")
 
-	// cmd 디렉토리의 부모(모듈 루트)에서 빌드한다.
+	// cmd 디렉토리(패키지 루트)에서 빌드한다.
 	build := exec.Command("go", "build", "-o", binaryPath, ".")
-	build.Dir = filepath.Join("..")
 	if out, err := build.CombinedOutput(); err != nil {
 		// 빌드 실패도 Red 상태임을 출력하고 비정상 종료.
 		// 테스트 파일 자체의 컴파일은 성공해야 Red 판정이 가능하다.
