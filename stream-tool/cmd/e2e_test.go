@@ -97,17 +97,24 @@ func TestE2E_파일없음(t *testing.T) {
 	}
 }
 
-func TestE2E_인자없음(t *testing.T) {
+func TestE2E_stdin입력(t *testing.T) {
 	bin := buildBinary(t)
 	root := moduleRoot(t)
 
-	res := runBinary(t, bin, root)
+	cmd := exec.Command(bin)
+	cmd.Dir = root
+	cmd.Stdin = strings.NewReader("one two\nthree\n")
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
 
-	if res.exitCode != 0 {
-		t.Errorf("exit code = %d, want 0", res.exitCode)
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("run: %v\nstderr: %s", err, stderr.String())
 	}
-	if !strings.Contains(res.stdout, "사용법:") {
-		t.Errorf("stdout does not contain usage message:\n%s", res.stdout)
+	// "one two\n"(8) + "three\n"(6) → Lines:2, Words:3, Bytes:14
+	want := "줄: 2\n단어: 3\n바이트: 14\n"
+	if got := stdout.String(); got != want {
+		t.Errorf("stdout = %q, want %q", got, want)
 	}
 }
 

@@ -14,26 +14,25 @@ func main() {
 	outFile := flag.String("out", "", "...")
 	flag.Parse()
 
-	if len(flag.Args()) == 0 {
-		printUsage(os.Stdout)
-		os.Exit(0)
-	}
-
 	var r io.Reader
-	path := flag.Args()[0]
-	f, err := os.Open(path)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "오류: %v\n", err)
-		os.Exit(1)
-	}
-	defer f.Close()
+	if len(flag.Args()) == 0 {
+		r = os.Stdin
+	} else {
+		path := flag.Args()[0]
+		f, err := os.Open(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "오류: %v\n", err)
+			os.Exit(1)
+		}
+		defer f.Close()
 
-	r = f
+		r = f
+	}
 
 	if *teeFile != "" {
 		tf, err := os.Create(*teeFile)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "stderr: 오류: %v\n", err)
+			fmt.Fprintf(os.Stderr, "오류: %v\n", err)
 			os.Exit(1)
 		}
 		defer tf.Close()
@@ -44,7 +43,7 @@ func main() {
 	if *outFile != "" {
 		of, err := os.Create(*outFile)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "stderr: 오류: %v\n", err)
+			fmt.Fprintf(os.Stderr, "오류: %v\n", err)
 			os.Exit(1)
 		}
 		defer of.Close()
@@ -55,7 +54,7 @@ func main() {
 
 	stats, err := stream.Count(r)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "stderr: 오류: %v\n", err)
+		fmt.Fprintf(os.Stderr, "오류: %v\n", err)
 		os.Exit(1)
 	}
 	printStats(w, stats)

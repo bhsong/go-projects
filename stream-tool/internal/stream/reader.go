@@ -36,22 +36,26 @@ func Count(r io.Reader) (Stats, error) {
 
 	scanner := bufio.NewScanner(r)
 
-	var lines, words, bytes int64
+	var lines, words, byteCount int64
 
 	for scanner.Scan() {
 		line := scanner.Text()
-		lines += 1
+		lines++
 
 		fields := strings.Fields(line)
 		words += int64(len(fields))
-		bytes += int64(len(line)) + 1
+		byteCount += int64(len(line)) + 1
 	}
 
 	if err := scanner.Err(); err != nil {
 		return Stats{}, fmt.Errorf("stream.Count: read error: %w", err)
 	}
 
-	return Stats{lines, words, bytes}, nil
+	return Stats{
+		Lines: lines,
+		Words: words,
+		Bytes: byteCount,
+	}, nil
 }
 
 var _ io.Reader = (*CountingReader)(nil)
