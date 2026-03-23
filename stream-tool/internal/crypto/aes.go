@@ -10,13 +10,16 @@ import (
 	"golang.org/x/crypto/scrypt"
 )
 
+const saltSize = 32
+const minEncryptSize = saltSize + 12
+
 func EncryptFile(srcPath, dstPath, password string) error {
 	plaintext, err := os.ReadFile(srcPath)
 	if err != nil {
 		return fmt.Errorf("crypto.EncryptFile: read source: %w", err)
 	}
 
-	salt := make([]byte, 32)
+	salt := make([]byte, saltSize)
 	_, err = rand.Read(salt)
 	if err != nil {
 		return fmt.Errorf("crypto.EncryptFile: generate salt: %w", err)
@@ -61,7 +64,7 @@ func DecryptFile(srcPath, dstPath, password string) error {
 		return fmt.Errorf("crypto.DecryptFile: read source: %w", err)
 	}
 
-	if len(data) < 44 {
+	if len(data) < minEncryptSize {
 		return fmt.Errorf("crypto.DecryptFile: %w", ErrFileTooShort)
 	}
 

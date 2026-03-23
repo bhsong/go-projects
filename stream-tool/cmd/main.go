@@ -66,42 +66,40 @@ func runCount(args []string) error {
 		defer f.Close()
 
 		r = f
-
-		if *teeFile != "" {
-			tf, err := os.Create(*teeFile)
-			if err != nil {
-				return fmt.Errorf("runCount: create tee file: %w", err)
-			}
-			defer tf.Close()
-
-			r = stream.Tee(r, tf)
-		}
-
-		var w io.Writer = os.Stdout
-		if *outFile != "" {
-			of, err := os.Create(*outFile)
-			if err != nil {
-				return fmt.Errorf("runCount: create out file: %w", err)
-			}
-			defer of.Close()
-
-			w = stream.MultiWrite(os.Stdout, of)
-		}
-
-		stats, err := stream.Count(r)
-		if err != nil {
-			return fmt.Errorf("runCount: %w", err)
-		}
-
-		fmt.Fprintf(w, "줄: %d\n단어: %d\n바이트: %d\n", stats.Lines, stats.Words, stats.Bytes)
-
 	}
+	if *teeFile != "" {
+		tf, err := os.Create(*teeFile)
+		if err != nil {
+			return fmt.Errorf("runCount: create tee file: %w", err)
+		}
+		defer tf.Close()
+
+		r = stream.Tee(r, tf)
+	}
+	var w io.Writer = os.Stdout
+	if *outFile != "" {
+		of, err := os.Create(*outFile)
+		if err != nil {
+			return fmt.Errorf("runCount: create out file: %w", err)
+		}
+		defer of.Close()
+
+		w = stream.MultiWrite(os.Stdout, of)
+	}
+
+	stats, err := stream.Count(r)
+	if err != nil {
+		return fmt.Errorf("runCount: %w", err)
+	}
+
+	fmt.Fprintf(w, "줄: %d\n단어: %d\n바이트: %d\n", stats.Lines, stats.Words, stats.Bytes)
+
 	return nil
 }
 
 func runHash(args []string) error {
 	if len(args) < 1 {
-		return fmt.Errorf("usage: stream tool hash <file")
+		return fmt.Errorf("usage: stream-tool hash <file>")
 	}
 
 	path := args[0]
@@ -131,8 +129,7 @@ func runVerify(args []string) error {
 	if ok {
 		fmt.Println("OK: hash matches")
 	} else {
-		fmt.Fprintln(os.Stderr, "FAIL: hash mismatch")
-		os.Exit(1)
+		return crypto.ErrHashMistmatch
 	}
 
 	return nil
@@ -169,16 +166,93 @@ func runHMAC(args []string) error {
 }
 
 func runHMACVerify(args []string) error {
+	fs := flag.NewFlagSet("hmac-verify", flag.ContinueOnError)
+	key := fs.String("key", "", "secret key")
+	if err := fs.Parse(args); err != nil {
+		return fmt.Errorf("runHMACVerify: %w", err)
+	}
 
+	if fs.NArg() < 2 {
+		return fmt.Errorf("usage: stream-tool hmac-verify --key <secret> <file> <mac>")
+	}
+
+	if *key == "" {
+		return fmt.Errorf("runHMACVerify: --key is required")
+	}
+
+	path, expected := fs.Arg(0), fs.Arg(1)
+	ok, err := crypto.VerifyHMAC(path, *key, expected)
+	if err != nil {
+		return fmt.Errorf("runHMACVerify: %w", err)
+	}
+
+	if ok {
+		fmt.Println("OK: hmac matches")
+	} else {
+		return crypto.ErrHMACMistmatch
+	}
 	return nil
 }
 
 func runEncrypt(args []string) error {
+	fs := flag.NewFlagSet("encrypt", flag.ContinueOnError)
+	pass := fs.String("pass", "", "encryption password")
+	out := fs.String("out", "", "output file path")
 
+	if err := fs.Parse(args); err != nil {
+		return fmt.Errorf("runEncrypt: %w", err)
+	}
+
+	if fs.NArg() < 1 {
+		return fmt.Errorf("usage: stream-tool encrypt --pass <password> --out <file> <file>")
+	}
+
+	if *pass == "" {
+		return fmt.Errorf("runEncrypt: --pass is required")
+	}
+
+	if *out == "" {
+		return fmt.Errorf("runEncrypt: --out is required")
+	}
+
+	src := fs.Arg(0)
+	err := crypto.EncryptFile(src, *out, *pass)
+	if err != nil {
+		return fmt.Errorf("runEncrypt: %w", err)
+	}
+
+	fmt.Printf("encrypted: %s -> %s\n", src, *out)
 	return nil
 }
 
 func runDecrypt(args []string) error {
+	fs := flag.NewFlagSet("decrypt", flag.ContinueOnError)
+	pass := fs.String("pass", "", "decryption password")
+	out := fs.String("out", "", "output file path")
+
+	if err := fs.Parse(args); err != nil {
+		return fmt.Errorf("runDecrypt: %w", err)
+	}
+
+	if fs.NArg() < 1 {
+		return fmt.Errorf("usage: stream-tool decrypt --pass <password> --out <file> <file>")
+	}
+
+	if *pass == "" {
+		return fmt.Errorf("runDecrypt: --pass is required")
+	}
+
+	if *out == "" {
+		return fmt.Errorf("runDecrypt: --out is required")
+	}
+
+	src := fs.Arg(0)
+	err := crypto.DecryptFile(src, *out, *pass)
+	if err != nil {
+		return fmt.Errorf("runDecrypt: %w", err)
+	}
+
+	fmt.Printf("decrypted: %s -> %s\n", src, *out)
 
 	return nil
 }

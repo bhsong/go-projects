@@ -20,7 +20,7 @@ func HashFile(path string) (string, error) {
 
 	_, err = io.Copy(h, f)
 	if err != nil {
-		return "", fmt.Errorf("crypto.HashFile: read file; %w", err)
+		return "", fmt.Errorf("crypto.HashFile: read file: %w", err)
 	}
 
 	return hex.EncodeToString(h.Sum(nil)), nil

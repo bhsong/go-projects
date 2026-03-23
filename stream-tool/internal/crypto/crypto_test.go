@@ -2,10 +2,10 @@ package crypto_test
 
 import (
 	"bytes"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"math/rand"
 	"os"
 	"path/filepath"
 	"testing"
@@ -44,25 +44,12 @@ func TestHashFile(t *testing.T) {
 		want    string
 		wantErr bool
 	}{
-		{
-			name: "[정상] known content → expected SHA-256 hex",
-			path: helloPath,
-			want: wantHello,
-		},
-		{
-			name: "[정상] empty file → SHA-256 of empty",
-			path: emptyPath,
-			want: wantEmpty,
-		},
-		{
-			name:    "[엣지] file not found → error",
-			path:    filepath.Join(dir, "nonexistent.txt"),
-			wantErr: true,
-		},
+		{name: "[정상] known content → expected SHA-256 hex", path: helloPath, want: wantHello},
+		{name: "[정상] empty file → SHA-256 of empty", path: emptyPath, want: wantEmpty},
+		{name: "[엣지] file not found → error", path: filepath.Join(dir, "nonexistent.txt"), wantErr: true},
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := mycrypto.HashFile(tt.path)
@@ -93,34 +80,13 @@ func TestVerifyFile(t *testing.T) {
 		want    bool
 		wantErr bool
 	}{
-		{
-			name: "[정상] correct hash → returns true, nil",
-			path: path,
-			hash: correctHash,
-			want: true,
-		},
-		{
-			name: "[정상] wrong hash → returns false, nil",
-			path: path,
-			hash: wrongHash,
-			want: false,
-		},
-		{
-			name:    "[엣지] invalid hex string → returns false, error",
-			path:    path,
-			hash:    "not-valid-hex!!",
-			wantErr: true,
-		},
-		{
-			name:    "[엣지] file not found → returns false, error",
-			path:    filepath.Join(dir, "nonexistent.txt"),
-			hash:    correctHash,
-			wantErr: true,
-		},
+		{name: "[정상] correct hash → returns true, nil", path: path, hash: correctHash, want: true},
+		{name: "[정상] wrong hash → returns false, nil", path: path, hash: wrongHash, want: false},
+		{name: "[엣지] invalid hex string → returns false, error", path: path, hash: "not-valid-hex!!", wantErr: true},
+		{name: "[엣지] file not found → returns false, error", path: filepath.Join(dir, "nonexistent.txt"), hash: correctHash, wantErr: true},
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := mycrypto.VerifyFile(tt.path, tt.hash)
@@ -154,34 +120,13 @@ func TestGenerateHMAC(t *testing.T) {
 		wantDiff  bool // refMAC와 달라야 하는 경우
 		wantErr   bool
 	}{
-		{
-			name:      "[정상] same file + same key → same MAC (deterministic)",
-			path:      file1,
-			key:       "secret",
-			wantEqual: true,
-		},
-		{
-			name:     "[정상] same file + diff key → different MAC",
-			path:     file1,
-			key:      "other-secret",
-			wantDiff: true,
-		},
-		{
-			name:     "[정상] diff file + same key → different MAC",
-			path:     file2,
-			key:      "secret",
-			wantDiff: true,
-		},
-		{
-			name:    "[엣지] file not found → error",
-			path:    filepath.Join(dir, "nonexistent.txt"),
-			key:     "secret",
-			wantErr: true,
-		},
+		{name: "[정상] same file + same key → same MAC (deterministic)", path: file1, key: "secret", wantEqual: true},
+		{name: "[정상] same file + diff key → different MAC", path: file1, key: "other-secret", wantDiff: true},
+		{name: "[정상] diff file + same key → different MAC", path: file2, key: "secret", wantDiff: true},
+		{name: "[엣지] file not found → error", path: filepath.Join(dir, "nonexistent.txt"), key: "secret", wantErr: true},
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := mycrypto.GenerateHMAC(tt.path, tt.key)
@@ -223,38 +168,13 @@ func TestVerifyHMAC(t *testing.T) {
 		want    bool
 		wantErr bool
 	}{
-		{
-			name: "[정상] correct key + correct mac → true, nil",
-			path: path,
-			key:  "secret",
-			mac:  correctMAC,
-			want: true,
-		},
-		{
-			name: "[정상] correct key + wrong mac → false, nil",
-			path: path,
-			key:  "secret",
-			mac:  wrongKeyMAC,
-			want: false,
-		},
-		{
-			name: "[정상] wrong key + any mac → false, nil",
-			path: path,
-			key:  "wrong-key",
-			mac:  correctMAC,
-			want: false,
-		},
-		{
-			name:    "[엣지] invalid hex mac string → false, error",
-			path:    path,
-			key:     "secret",
-			mac:     "not-valid-hex!!",
-			wantErr: true,
-		},
+		{name: "[정상] correct key + correct mac → true, nil", path: path, key: "secret", mac: correctMAC, want: true},
+		{name: "[정상] correct key + wrong mac → false, nil", path: path, key: "secret", mac: wrongKeyMAC, want: false},
+		{name: "[정상] wrong key + any mac → false, nil", path: path, key: "wrong-key", mac: correctMAC, want: false},
+		{name: "[엣지] invalid hex mac string → false, error", path: path, key: "secret", mac: "not-valid-hex!!", wantErr: true},
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
 			got, err := mycrypto.VerifyHMAC(tt.path, tt.key, tt.mac)
@@ -268,7 +188,46 @@ func TestVerifyHMAC(t *testing.T) {
 	}
 }
 
-func TestEncryptDecryptFile(t *testing.T) {
+// TestEncryptFile: EncryptFile 자체의 동작 검증
+func TestEncryptFile(t *testing.T) {
+	t.Parallel()
+	dir := t.TempDir()
+	original := []byte("this is my secret content")
+	srcPath := tempFile(t, dir, "plain.txt", original)
+
+	tests := []struct {
+		name    string
+		srcPath string
+		wantErr bool
+	}{
+		{name: "[정상] encrypt → 암호화 파일은 원본과 달라야 함", srcPath: srcPath},
+		{name: "[엣지] src file not found → error", srcPath: filepath.Join(dir, "nonexistent.txt"), wantErr: true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			encPath := filepath.Join(t.TempDir(), "encrypted.bin")
+			err := mycrypto.EncryptFile(tt.srcPath, encPath, "password")
+			if (err != nil) != tt.wantErr {
+				t.Fatalf("EncryptFile err = %v, wantErr = %v", err, tt.wantErr)
+			}
+			if tt.wantErr {
+				return
+			}
+			enc, err := os.ReadFile(encPath)
+			if err != nil {
+				t.Fatalf("read encrypted file: %v", err)
+			}
+			if bytes.Equal(enc, original) {
+				t.Error("encrypted file must differ from original plaintext")
+			}
+		})
+	}
+}
+
+// TestDecryptFile: DecryptFile 자체의 동작 검증 (복호화 전 암호화 선행)
+func TestDecryptFile(t *testing.T) {
 	t.Parallel()
 	dir := t.TempDir()
 	original := []byte("this is my secret content")
@@ -277,104 +236,57 @@ func TestEncryptDecryptFile(t *testing.T) {
 	tooShortPath := tempFile(t, dir, "short.bin", make([]byte, 43))
 
 	tests := []struct {
-		name            string
-		srcPath         string
-		password        string
-		decPassword     string
-		setupEncrypt    bool  // 먼저 EncryptFile을 실행해야 하는 경우
-		skipDecrypt     bool  // DecryptFile 단계를 건너뛸 경우
-		wantEncryptErr  bool  // EncryptFile이 에러를 반환해야 하는 경우
-		wantDecryptErr  error // errors.Is로 확인할 sentinel 에러
+		name        string
+		password    string
+		decPassword string
+		decSrc      string // 비어 있으면 srcPath를 암호화한 결과를 사용
+		wantErr     error  // errors.Is로 확인할 sentinel 에러 (nil이면 성공 기대)
 	}{
 		{
-			name:         "[정상] encrypt then decrypt with same password → plaintext matches",
-			srcPath:      srcPath,
-			password:     "correct-pass",
-			decPassword:  "correct-pass",
-			setupEncrypt: true,
+			name:        "[정상] encrypt then decrypt with same password → plaintext matches",
+			password:    "correct-pass",
+			decPassword: "correct-pass",
 		},
 		{
-			name:         "[정상] encrypted file differs from original (not plaintext)",
-			srcPath:      srcPath,
-			password:     "some-pass",
-			setupEncrypt: true,
-			skipDecrypt:  true,
+			name:        "[엣지] decrypt with wrong password → ErrDecryptFailed",
+			password:    "correct-pass",
+			decPassword: "wrong-pass",
+			wantErr:     mycrypto.ErrDecryptFailed,
 		},
 		{
-			name:           "[엣지] decrypt with wrong password → ErrDecryptFailed",
-			srcPath:        srcPath,
-			password:       "correct-pass",
-			decPassword:    "wrong-pass",
-			setupEncrypt:   true,
-			wantDecryptErr: mycrypto.ErrDecryptFailed,
-		},
-		{
-			name:           "[엣지] decrypt file too short → ErrFileTooShort",
-			srcPath:        tooShortPath,
-			decPassword:    "any-pass",
-			wantDecryptErr: mycrypto.ErrFileTooShort,
-		},
-		{
-			name:           "[엣지] src file not found → error on EncryptFile",
-			srcPath:        filepath.Join(dir, "nonexistent.txt"),
-			password:       "pass",
-			setupEncrypt:   true,
-			wantEncryptErr: true,
-			skipDecrypt:    true,
+			name:    "[엣지] decrypt file too short → ErrFileTooShort",
+			decSrc:  tooShortPath,
+			wantErr: mycrypto.ErrFileTooShort,
 		},
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			t.Parallel()
-			encPath := filepath.Join(t.TempDir(), "encrypted.bin")
+			decSrc := tt.decSrc
+
+			// decSrc가 지정되지 않은 경우 먼저 암호화한다
+			if decSrc == "" {
+				encPath := filepath.Join(t.TempDir(), "encrypted.bin")
+				if err := mycrypto.EncryptFile(srcPath, encPath, tt.password); err != nil {
+					t.Fatalf("EncryptFile: %v", err)
+				}
+				decSrc = encPath
+			}
+
 			decPath := filepath.Join(t.TempDir(), "decrypted.txt")
+			err := mycrypto.DecryptFile(decSrc, decPath, tt.decPassword)
 
-			// EncryptFile 단계
-			if tt.setupEncrypt || tt.wantEncryptErr {
-				encErr := mycrypto.EncryptFile(tt.srcPath, encPath, tt.password)
-				if tt.wantEncryptErr {
-					if encErr == nil {
-						t.Fatal("expected EncryptFile to return error, got nil")
-					}
-					return
-				}
-				if encErr != nil {
-					t.Fatalf("EncryptFile: %v", encErr)
-				}
-				// 암호화 파일은 원본과 달라야 한다
-				enc, err := os.ReadFile(encPath)
-				if err != nil {
-					t.Fatalf("read encrypted file: %v", err)
-				}
-				if bytes.Equal(enc, original) {
-					t.Error("encrypted file must differ from original plaintext")
-				}
-			}
-
-			if tt.skipDecrypt {
-				return
-			}
-
-			// DecryptFile 단계: 사전 암호화한 경우 encPath, 아닌 경우 srcPath를 사용
-			decSrc := encPath
-			if !tt.setupEncrypt {
-				decSrc = tt.srcPath
-			}
-
-			decErr := mycrypto.DecryptFile(decSrc, decPath, tt.decPassword)
-			if tt.wantDecryptErr != nil {
-				if !errors.Is(decErr, tt.wantDecryptErr) {
-					t.Errorf("DecryptFile err = %v, want errors.Is(%v)", decErr, tt.wantDecryptErr)
+			if tt.wantErr != nil {
+				if !errors.Is(err, tt.wantErr) {
+					t.Errorf("DecryptFile err = %v, want errors.Is(%v)", err, tt.wantErr)
 				}
 				return
 			}
-			if decErr != nil {
-				t.Fatalf("DecryptFile: %v", decErr)
+			if err != nil {
+				t.Fatalf("DecryptFile: %v", err)
 			}
 
-			// 복호화 결과가 원본과 일치해야 한다
 			got, err := os.ReadFile(decPath)
 			if err != nil {
 				t.Fatalf("read decrypted file: %v", err)
@@ -391,39 +303,30 @@ func TestEncryptNonDeterministic(t *testing.T) {
 	dir := t.TempDir()
 	srcPath := tempFile(t, dir, "plain.txt", []byte("same content every time"))
 
-	tests := []struct {
-		name string
-	}{
-		{name: "[정상] same input encrypted twice → different ciphertext (salt+nonce 매번 다름)"},
-	}
+	t.Run("[정상] same input encrypted twice → different ciphertext (salt+nonce 매번 다름)", func(t *testing.T) {
+		t.Parallel()
+		enc1 := filepath.Join(t.TempDir(), "enc1.bin")
+		enc2 := filepath.Join(t.TempDir(), "enc2.bin")
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			enc1 := filepath.Join(t.TempDir(), "enc1.bin")
-			enc2 := filepath.Join(t.TempDir(), "enc2.bin")
+		if err := mycrypto.EncryptFile(srcPath, enc1, "password"); err != nil {
+			t.Fatalf("EncryptFile 1: %v", err)
+		}
+		if err := mycrypto.EncryptFile(srcPath, enc2, "password"); err != nil {
+			t.Fatalf("EncryptFile 2: %v", err)
+		}
 
-			if err := mycrypto.EncryptFile(srcPath, enc1, "password"); err != nil {
-				t.Fatalf("EncryptFile 1: %v", err)
-			}
-			if err := mycrypto.EncryptFile(srcPath, enc2, "password"); err != nil {
-				t.Fatalf("EncryptFile 2: %v", err)
-			}
-
-			b1, err := os.ReadFile(enc1)
-			if err != nil {
-				t.Fatalf("read enc1: %v", err)
-			}
-			b2, err := os.ReadFile(enc2)
-			if err != nil {
-				t.Fatalf("read enc2: %v", err)
-			}
-			if bytes.Equal(b1, b2) {
-				t.Error("two encryptions of the same file must produce different ciphertext (salt/nonce not reused)")
-			}
-		})
-	}
+		b1, err := os.ReadFile(enc1)
+		if err != nil {
+			t.Fatalf("read enc1: %v", err)
+		}
+		b2, err := os.ReadFile(enc2)
+		if err != nil {
+			t.Fatalf("read enc2: %v", err)
+		}
+		if bytes.Equal(b1, b2) {
+			t.Error("two encryptions of the same file must produce different ciphertext (salt/nonce not reused)")
+		}
+	})
 }
 
 // ---- Feature 테스트 ----
@@ -433,29 +336,20 @@ func TestFeature_HashAndVerifyPipeline(t *testing.T) {
 	dir := t.TempDir()
 	path := tempFile(t, dir, "data.txt", []byte("pipeline test data"))
 
-	tests := []struct {
-		name string
-	}{
-		{name: "[정상] HashFile 결과를 VerifyFile에 바로 사용 → true"},
-	}
-
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			hash, err := mycrypto.HashFile(path)
-			if err != nil {
-				t.Fatalf("HashFile: %v", err)
-			}
-			ok, err := mycrypto.VerifyFile(path, hash)
-			if err != nil {
-				t.Fatalf("VerifyFile: %v", err)
-			}
-			if !ok {
-				t.Error("VerifyFile with freshly computed hash must return true")
-			}
-		})
-	}
+	t.Run("[정상] HashFile 결과를 VerifyFile에 바로 사용 → true", func(t *testing.T) {
+		t.Parallel()
+		hash, err := mycrypto.HashFile(path)
+		if err != nil {
+			t.Fatalf("HashFile: %v", err)
+		}
+		ok, err := mycrypto.VerifyFile(path, hash)
+		if err != nil {
+			t.Fatalf("VerifyFile: %v", err)
+		}
+		if !ok {
+			t.Error("VerifyFile with freshly computed hash must return true")
+		}
+	})
 }
 
 func TestFeature_EncryptDecryptLargeFile(t *testing.T) {
@@ -469,33 +363,24 @@ func TestFeature_EncryptDecryptLargeFile(t *testing.T) {
 	}
 	srcPath := tempFile(t, dir, "large.bin", data)
 
-	tests := []struct {
-		name string
-	}{
-		{name: "[정상] 1MB 데이터 암호화/복호화 → 내용 일치"},
-	}
+	t.Run("[정상] 1MB 데이터 암호화/복호화 → 내용 일치", func(t *testing.T) {
+		t.Parallel()
+		encPath := filepath.Join(t.TempDir(), "large.enc")
+		decPath := filepath.Join(t.TempDir(), "large.dec")
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
-			t.Parallel()
-			encPath := filepath.Join(t.TempDir(), "large.enc")
-			decPath := filepath.Join(t.TempDir(), "large.dec")
+		if err := mycrypto.EncryptFile(srcPath, encPath, "large-file-password"); err != nil {
+			t.Fatalf("EncryptFile: %v", err)
+		}
+		if err := mycrypto.DecryptFile(encPath, decPath, "large-file-password"); err != nil {
+			t.Fatalf("DecryptFile: %v", err)
+		}
 
-			if err := mycrypto.EncryptFile(srcPath, encPath, "large-file-password"); err != nil {
-				t.Fatalf("EncryptFile: %v", err)
-			}
-			if err := mycrypto.DecryptFile(encPath, decPath, "large-file-password"); err != nil {
-				t.Fatalf("DecryptFile: %v", err)
-			}
-
-			got, err := os.ReadFile(decPath)
-			if err != nil {
-				t.Fatalf("read decrypted: %v", err)
-			}
-			if !bytes.Equal(got, data) {
-				t.Error("decrypted large file must match original")
-			}
-		})
-	}
+		got, err := os.ReadFile(decPath)
+		if err != nil {
+			t.Fatalf("read decrypted: %v", err)
+		}
+		if !bytes.Equal(got, data) {
+			t.Error("decrypted large file must match original")
+		}
+	})
 }

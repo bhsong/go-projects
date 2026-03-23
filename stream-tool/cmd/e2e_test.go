@@ -202,7 +202,6 @@ func TestE2E_hash(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			res := runBinary(t, bin, root, tt.args...)
 			if res.exitCode != tt.wantCode {
@@ -261,7 +260,6 @@ func TestE2E_verify(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			res := runBinary(t, bin, root, tt.args...)
 			if res.exitCode != tt.wantCode {
@@ -301,7 +299,6 @@ func TestE2E_hmac(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			res := runBinary(t, bin, root, tt.args...)
 			if res.exitCode != tt.wantCode {
@@ -356,7 +353,6 @@ func TestE2E_hmac_verify(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			res := runBinary(t, bin, root, tt.args...)
 			if res.exitCode != tt.wantCode {
@@ -408,7 +404,6 @@ func TestE2E_encrypt_decrypt_roundtrip(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		tt := tt
 		t.Run(tt.name, func(t *testing.T) {
 			encPath := filepath.Join(t.TempDir(), "encrypted.bin")
 			decPath := filepath.Join(t.TempDir(), "decrypted.txt")
